@@ -24,8 +24,8 @@ using BSON: @save, @load
     hidden_dim = 128        # hidden dimension
     tblogger = true         # log training with tensorboard
     beta = 0.5              # β value in loss function
-    variation = "length"    # what to vary
-    data_set = "100mm"      # what set of states to train the VAE to represent 
+    variation = "shape"    # what to vary
+    data_set = "concave"      # what set of states to train the VAE to represent 
     filter_width = 4        # CNN kernal dimension
 
 end
