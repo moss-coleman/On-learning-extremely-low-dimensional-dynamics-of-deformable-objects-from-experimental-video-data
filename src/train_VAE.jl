@@ -19,13 +19,11 @@ using BSON: @save, @load
     epochs = 5          # number of epochs
     seed = 42               # random seed
     cuda = true             # use GPU
-    input_dim = [36, 64, 3] # image size
+    input_dim = [36, 64, 1] # image size
     latent_dim = 1          # latent dimension
-    hidden_dim = 128        # hidden dimension
-    tblogger = true         # log training with tensorboard
-    beta = 0.5              # β value in loss function
-    variation = "shape"    # what to vary
-    data_set = "concave"      # what set of states to train the VAE to represent 
+    beta = 1.0              # β value in loss function
+    variation = "shape"     # what to vary, "shape" or "length"
+    data_set = "concave"    # what set of states to train the VAE to represent
     filter_width = 4        # CNN kernal dimension
 
 end
@@ -128,21 +126,11 @@ function create_VAE(; kws...)
     channel = args.input_dim[3]
     Dz = 1
     cnn_output_size = Int.(floor.([pix_w / 8, pix_h / 8, 32]))
-    # cnn_output_size = Int.(floor.([5, 8, 32])) # for (3, 3) filter
-    # cnn_output_size = Int.(floor.([64, 36, 32])) # for (3, 3) filter
-    # cnn_flat_size = Int.(floor((pix_w / 8) * (pix_h / 8) * 32))
     cnn_flat_size = 1024
 
     D_flat = 256
-    # struct Reshape
-    #     shape
-    # end
 
-    # Reshape(args...) = Reshape(args)
-    # (r::Reshape)(x) = reshape(x, r.shape)
-    # Flux.@functor Reshape ()
-
-    filter_width = 4
+    # filter_width = 4
 
     conv_1 = Conv((args.filter_width, args.filter_width), channel => 32, tanh; stride=2, pad=1) #in [480, 640, 3, 71] out -> [240, 320, 32, 71] = [h/stride, w/stride, 32, b]
     conv_2 = Conv((args.filter_width, args.filter_width), 32 => 32, tanh; stride=2, pad=1) # in [240, 320, 32, 71], out -> [120, 160, 32, 71] = [(h/stride)/stride, (w/stride)/stride, 32, b]
@@ -155,25 +143,12 @@ function create_VAE(; kws...)
     encoder_μ = Chain(encoder_features, Dense(D_flat, Dz))
     encoder_logvar = Chain(encoder_features, Dense(D_flat, Dz))
 
-
     dense_out_1 = Dense(Dz, D_flat, tanh)
     dense_out_2 = Dense(D_flat, cnn_flat_size, tanh)
 
-
-    # dense decoder instead of conv decoder
-
-    # dense_out_3 = Dense(cnn_flat_size, pix_h * pix_w * channel)
-
-    # decoder = Chain(dense_out_1, dense_out_2, dense_out_3, Reshape(pix_h, pix_w, channel, :))
-    #emphasise decoder = Chain(dense_out_1, dense_out_2, dense_out_3, x -> reshape(x, (pix_h, pix_w, channel, :)))
-
-    #x -> reshape(x,(4,4,32,:))
-    #reshape_out = Reshape(4, 4, 32, :)
-    #deconv_1 = ConvTranspose((3, 3), 7*7*32=>64, re    # So we minimise the sum of the negative ELBO and a weight penalty
-
-    deconv_1 = ConvTranspose((filter_width, filter_width), 32 => 32, tanh; stride=2, pad=(1, 1, 1, 1))
-    deconv_2 = ConvTranspose((filter_width, filter_width), 32 => 32, tanh; stride=2, pad=(0, 0, 1, 1))
-    deconv_out = ConvTranspose((filter_width, filter_width), 32 => channel; stride=2, pad=(1, 1, 1, 1))
+    deconv_1 = ConvTranspose((args.filter_width, args.filter_width), 32 => 32, tanh; stride=2, pad=(1, 1, 1, 1))
+    deconv_2 = ConvTranspose((args.filter_width, args.filter_width), 32 => 32, tanh; stride=2, pad=(0, 0, 1, 1))
+    deconv_out = ConvTranspose((args.filter_width, args.filter_width), 32 => channel; stride=2, pad=(1, 1, 1, 1))
 
     decoder = Chain(dense_out_1, dense_out_2, Reshape(cnn_output_size[2], cnn_output_size[1], 32, :), deconv_1, deconv_2, deconv_out)
     return encoder_μ, encoder_logvar, decoder
