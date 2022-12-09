@@ -5,5 +5,6 @@ This repository is for the code accompaning the paper "On learning extremely low
 It contains the experimental data used in the paper, the code for processing, the script used to train the VAE models and script for training the MLP in the latent space. 
 
 ## Overview of overall architecture 
-![Alt text](./overall_architecture.svg)
+<!-- ![Alt text](./overall_architecture.svg) -->
+<img src="./overall_architecture.svg" width="700" />
 
