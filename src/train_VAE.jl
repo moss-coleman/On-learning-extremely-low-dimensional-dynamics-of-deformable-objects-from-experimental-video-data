@@ -37,7 +37,6 @@ Reshape(args...) = Reshape(args)
 Flux.@functor Reshape ()
 
 
-
 function load_data(; kws...)
     args = Args(; kws...)
     println("../data/video/states/$(args.variation)_variation/states_$(args.data_set)_36x64.mp4")
