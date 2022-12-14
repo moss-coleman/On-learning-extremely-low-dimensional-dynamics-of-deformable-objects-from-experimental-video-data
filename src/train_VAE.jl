@@ -16,7 +16,7 @@ using BSON: @save, @load
 @with_kw mutable struct Args
     η = 1e-4                # learning rate
     λ = 0.01f0              # regularization paramater
-    epochs = 5          # number of epochs
+    epochs = 100          # number of epochs
     seed = 42               # random seed
     cuda = true             # use GPU
     input_dim = [36, 64, 1] # image size
@@ -25,7 +25,6 @@ using BSON: @save, @load
     variation = "shape"     # what to vary, "shape" or "length"
     data_set = "concave"    # what set of states to train the VAE to represent
     filter_width = 4        # CNN kernal dimension
-
 end
 
 struct Reshape
